@@ -6,35 +6,37 @@ let chromiumPath = process.platform === "linux" ? "/usr/bin/chromium-browser" : 
 if (chromiumPath && !fs.existsSync(chromiumPath)) console.log("[node_characterai] Puppeteer - Warning: the specified Chromium path for puppeteer could not be located. If the script does not work properly, you may need to specify a path to the Chromium binary file/executable.");
 
 class Requester {
-    browser = undefined;
-    page = undefined;
+    constructor() {
+        this.browser = undefined;
+        this.page = undefined;
 
-    #initialized = false;
-    #hasDisplayed = false;
+        this.initialized = false;
+        this.hasDisplayed = false;
 
-    headless = "new";
-    puppeteerPath = undefined;
-    puppeteerLaunchArgs = [
-        "--fast-start",
-        "--disable-extensions",
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--no-gpu",
-        "--disable-background-timer-throttling",
-        "--disable-renderer-backgrounding",
-        "--override-plugin-power-saver-for-testing=never",
-        "--disable-extensions-http-throttling",
-        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.3"
-    ];
-    puppeteerNoDefaultTimeout = false;
-    puppeteerProtocolTimeout = 0;
-    usePlus = false;
-    forceWaitingRoom = false;
-
-    constructor() {}
-    isInitialized() {
-        return this.#initialized;
+        this.headless = "new";
+        this.puppeteerPath = undefined;
+        this.puppeteerLaunchArgs = [
+            "--fast-start",
+            "--disable-extensions",
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--no-gpu",
+            "--disable-background-timer-throttling",
+            "--disable-renderer-backgrounding",
+            "--override-plugin-power-saver-for-testing=never",
+            "--disable-extensions-http-throttling",
+            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.3"
+        ];
+        this.puppeteerNoDefaultTimeout = false;
+        this.puppeteerProtocolTimeout = 0;
+        this.usePlus = false;
+        this.forceWaitingRoom = false;
     }
+
+    isInitialized() {
+        return this.initialized;
+    }
+
     async waitForWaitingRoom(page) {
         // Enable force waiting room to ensure you check for waiting room even on C.AI+
         if (!this.usePlus || (this.usePlus && this.forceWaitingRoom)) {

@@ -4,17 +4,15 @@ const Parser = require("./parser");
 const Requester = require("./requester");
 
 class Client {
-    #token = undefined;
-    #isGuest = false;
-    #authenticated = false;
-    #guestHeaders = {
-        "content-type": "application/json",
-        "user-agent": "CharacterAI/1.0.0 (iPhone; iOS 14.4.2; Scale/3." + Math.random().toFixed(1).split(".")[1] + ")"
-    }
-    requester = new Requester();
-
     constructor() {
-        this.#token = undefined;
+        this.token = undefined;
+        this.isGuest = false;
+        this.authenticated = false;
+        this.guestHeaders = {
+            "content-type": "application/json",
+            "user-agent": "CharacterAI/1.0.0 (iPhone; iOS 14.4.2; Scale/3." + Math.random().toFixed(1).split(".")[1] + ")"
+        };
+        this.requester = new Requester();
     }
 
     // api fetching
@@ -26,7 +24,7 @@ class Client {
     }
     async fetchUserConfig() {
         const request = await this.requester.request("https://beta.character.ai/chat/config/", {
-            headers: this.#guestHeaders
+            headers: this.guestHeaders
         });
 
         if (request.status() === 200) {
@@ -69,7 +67,7 @@ class Client {
         }/characters/`;
 
         const request = await this.requester.request(url, {
-            headers: this.#guestHeaders
+            headers: this.guestHeaders
         });
 
         const property = curated ? "characters_by_curated_category" : "characters_by_category";
@@ -100,7 +98,7 @@ class Client {
     }
     async searchCharacters(characterName) {
         if (!this.isAuthenticated()) throw Error("You must be authenticated to do this.");
-        if (this.#isGuest) throw Error("Guest accounts cannot use the search feature.");
+        if (this.isGuest) throw Error("Guest accounts cannot use the search feature.");
         if (characterName == undefined || typeof(characterName) != "string") throw Error("Invalid arguments.");
 
         const request = await this.requester.request(`https://beta.character.ai/chat/characters/search/?query=${characterName}`, {
@@ -225,9 +223,9 @@ WARNING: CharacterAI has changed its authentication methods again.
         });
 
         if (request.status() === 200) {
-            this.#isGuest = false;
-            this.#authenticated = true;
-            this.#token = sessionToken;
+            this.isGuest = false;
+            this.authenticated = true;
+            this.token = sessionToken;
 
             return sessionToken;
         }
@@ -257,7 +255,7 @@ WARNING: CharacterAI has changed its authentication methods again.
                 this.requester.request("https://beta.character.ai/chat/auth/lazy/", {
                     method: "POST",
                     body: payload,
-                    headers: this.#guestHeaders,
+                    headers: this.guestHeaders,
                 }),
                 new Promise(resolve => setTimeout(() => resolve(null), 2000))
             ]);
@@ -272,9 +270,9 @@ WARNING: CharacterAI has changed its authentication methods again.
             const response = await Parser.parseJSON(request);
 
             if (response.success === true) {
-                this.#isGuest = true;
-                this.#authenticated = true;
-                this.#token = response.token;
+                this.isGuest = true;
+                this.authenticated = true;
+                this.token = response.token;
                 this.uuid = uuid;
 
                 return response.token;
@@ -283,28 +281,28 @@ WARNING: CharacterAI has changed its authentication methods again.
     }
     unauthenticate() {
         if (this.isAuthenticated()) {
-            this.#authenticated = false;
-            this.#isGuest = false;
-            this.#token = undefined;
+            this.authenticated = false;
+            this.isGuest = false;
+            this.token = undefined;
             this.requester.uninitialize();
         }
     }
 
     // getters
     getToken() {
-        return this.#token;
+        return this.token;
     }
     isGuest() {
-        return this.#isGuest;
+        return this.isGuest;
     }
     isAuthenticated() {
-        return (this.#authenticated);
+        return (this.authenticated);
     }
 
     // headers
     getHeaders() {
         return {
-            authorization: `Token ${this.#token}`,
+            authorization: `Token ${this.token}`,
             "Content-Type": "application/json",
             // "user-agent": "CharacterAI/1.0.0 (iPhone; iOS 14.4.2; Scale/3.00)",
             // "sec-ch-ua": `"Not_A Brand";v="99", "Google Chrome";v="109", "Chromium";v="109"`,
